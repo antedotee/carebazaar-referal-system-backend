@@ -17,6 +17,7 @@ model User {
   user_id    Int       @id @default(autoincrement()) // SERIAL equivalent
   email      String    @unique
   name       String?
+  password   String
   points     Int       @default(0)
   created_at DateTime  @default(now())
   referrals  Referral[] @relation("Referrer")

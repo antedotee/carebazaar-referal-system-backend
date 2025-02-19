@@ -1,6 +1,7 @@
 const express = require("express");
 const { connectDB } = require("./src/config/database");
 const referralCodeRoutes = require("./src/routes/referral.routes");
+const authRoutes = require("./src/routes/auth.routes");
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 connectDB();
 
 // API Routes
+app.use("/api", authRoutes);
 app.use("/api", referralCodeRoutes);
 
 const PORT = process.env.PORT || 9999;
