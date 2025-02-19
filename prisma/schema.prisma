@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id    Int       @id @default(autoincrement()) // SERIAL equivalent
+  email      String    @unique
+  name       String?
+  points     Int       @default(0)
+  created_at DateTime  @default(now())
+  referrals  Referral[] @relation("Referrer")
+  referredBy Referral[] @relation("Referred")
+  referralCodes ReferralCode[] @relation("UserReferralCodes")
+
+}
+
+model ReferralCode {
+  code_id         Int       @id @default(autoincrement())
+  referrer_id     Int
+  code            String    @unique
+  times_used      Int       @default(0)
+  max_uses        Int       @default(10)
+  points_per_referral Int    @default(100)
+  expires_at      DateTime?
+  created_at      DateTime  @default(now())
+
+  referrer        User      @relation("UserReferralCodes", fields: [referrer_id], references: [user_id])
+  referrals       Referral[]
+
+  // @@constraint([points_per_referral], name: "valid_points", check: "points_per_referral > 0")
+}
+
+model Referral {
+  referral_id     Int       @id @default(autoincrement()) // SERIAL equivalent
+  referrer_id     Int
+  referred_id     Int
+  code_id         Int
+  points_awarded  Int
+  status          String    @default("pending")
+  created_at      DateTime  @default(now())
+
+  referrer        User      @relation("Referrer", fields: [referrer_id], references: [user_id])
+  referred        User      @relation("Referred", fields: [referred_id], references: [user_id])
+  referralCode    ReferralCode @relation(fields: [code_id], references: [code_id])
+
+  @@unique([referred_id])
+  // @@constraint([status], name: "valid_status", check: "status IN ('pending', 'completed', 'rejected')")
+}
